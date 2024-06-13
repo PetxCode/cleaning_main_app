@@ -1,5 +1,8 @@
-import { Application, Request, Response } from "express";
+import { Application, NextFunction, Request, Response } from "express";
 import agent from "./router/agentRouter";
+import { mainError } from "./error/mainError";
+import { HTTP } from "./utils/enums";
+import { errorHandler } from "./error/errorHandler";
 export const mainApp = async (app: Application) => {
   //   Agent routes
   app.use("/api/v1", agent);
@@ -17,4 +20,17 @@ export const mainApp = async (app: Application) => {
       });
     }
   });
+
+  app.all("*", (req: Request, res: Response, next: NextFunction) => {
+    next(
+      new mainError({
+        name: "Route Error",
+        message: `This: "${req.originalUrl}" is not a valid route`,
+        status: HTTP.BAD_RESPONSE,
+        success: false,
+      })
+    );
+  });
+
+  app.use(errorHandler);
 };

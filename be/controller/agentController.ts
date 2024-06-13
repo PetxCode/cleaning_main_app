@@ -3,8 +3,19 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import agentModel from "../model/agentModel";
 import { createAgentAccountEmail } from "../utils/email";
-import { JWT_SECRET } from "../utils/constant";
-import { ROLE } from "../utils/enums";
+import {
+  CLOUDINARY_API,
+  CLOUDINARY_NAME,
+  CLOUDINARY_SECRET,
+  JWT_SECRET,
+} from "../utils/constant";
+import { v2 as cloudinary } from "cloudinary";
+
+export default cloudinary.config({
+  cloud_name: CLOUDINARY_NAME,
+  api_key: CLOUDINARY_API,
+  api_secret: CLOUDINARY_SECRET,
+});
 
 export const createAgent = async (
   req: Request,
@@ -144,6 +155,64 @@ export const viewAllAgent = async (
   } catch (error) {
     return res.status(404).json({
       message: "Error creating agent",
+    });
+  }
+};
+
+export const uploadAgentAvatar = async (
+  req: any,
+  res: Response
+): Promise<Response> => {
+  try {
+    const { agentID } = req.params;
+
+    const { secure_url } = await cloudinary.uploader.upload(req.file.path);
+
+    const agent = await agentModel.findByIdAndUpdate(
+      agentID,
+      {
+        avatar: secure_url,
+      },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      message: "single agent avatar updated",
+      data: agent,
+    });
+  } catch (error: any) {
+    return res.status(404).json({
+      message: "Error creating agent",
+      data: error.message,
+    });
+  }
+};
+
+export const updatedAgentName = async (
+  req: any,
+  res: Response
+): Promise<Response> => {
+  try {
+    const { agentID } = req.params;
+
+    const { secure_url } = await cloudinary.uploader.upload(req.file.path);
+
+    const agent = await agentModel.findByIdAndUpdate(
+      agentID,
+      {
+        fullName: secure_url,
+      },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      message: "single agent avatar updated",
+      data: agent,
+    });
+  } catch (error: any) {
+    return res.status(404).json({
+      message: "Error creating agent",
+      data: error.message,
     });
   }
 };
